@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"math"
-	"strconv"
+	"github.com/caleblloyd/primesieve"
+	"math/big"
 	"time"
 )
 
@@ -41,26 +41,52 @@ func psieve(bound int) []bool {
 	return sieve
 }
 
-func main() {
-	start := time.Now()
-	bound := int(math.Pow(10, 5))
-	sieve := psieve(bound)
-	primes := make([]int, 0, bound)
-
-	for i:=0;i < bound; i++ {
-		if sieve[i] {
-			primes = append(primes, i)
-		}
+func generate(process func(x int)) {
+	for i := 0; i < 10; i++ {
+		process(i)
 	}
-
-	for _, x := range primes {
-		y := ((x * x) - 1) / 24
-		if isPalindrome(strconv.Itoa(y)) {
-			fmt.Printf("palindrome: %v prime: %v time:%v\n", y, x, time.Now().Sub(start))
-		}
-	}
-
-	fmt.Print("Finished")
 }
+
+func main() {
+	c := make(chan uint64)
+
+	primesieve.Channel(c)
+	start := time.Now()
+
+	var x big.Int
+	var one = big.NewInt(1)
+	var twentyfour = big.NewInt(24)
+
+	for {
+		fmt.Scanln()
+		p := <-c
+		x.SetUint64(p)
+		x.Mul(&x, &x)
+		x.Sub(&x, one)
+		x.Div(&x, twentyfour)
+		t := x.String()
+		if isPalindrome(t) {
+			fmt.Printf("palindrome: %v prime: %v time:%v\n", x.String(), p, time.Now().Sub(start))
+		}
+	}
+
+	fmt.Println()
+	// 2 3 5 7 11 13 17 19 23 29
+}
+
+//func main() {
+//	start := time.Now()
+//
+//	process := func(x int) {
+//		fmt.Println("Processing", x)
+//		y := ((x * x) - 1) / 24
+//		if isPalindrome(strconv.Itoa(y)) {
+//			fmt.Printf("palindrome: %v prime: %v time:%v\n", y, x, time.Now().Sub(start))
+//		}
+//	}
+//	generate(process)
+//
+//	fmt.Print("Finished")
+//}
 
 
